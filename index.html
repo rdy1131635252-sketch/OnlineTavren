@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>泗水首家线上酒馆 · 进口啤酒折扣</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-primary: #0f0d13;
+      --bg-glass: rgba(255,255,255,0.06);
+      --bg-glass-heavy: rgba(255,255,255,0.10);
+      --border-glass: rgba(255,255,255,0.08);
+      --border-glass-light: rgba(255,255,255,0.12);
+      --text-primary: #f2ede6;
+      --text-secondary: rgba(242,237,230,0.55);
+      --text-dim: rgba(242,237,230,0.35);
+      --accent-gold: #c9a96e;
+      --accent-gold-light: #dfc08a;
+      --accent-warm: #a3724e;
+      --danger: #cf4444;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --font-display: 'Cormorant Garamond','Noto Serif SC',serif;
+      --font-body: 'Noto Serif SC','PingFang SC',-apple-system,serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-body);overflow-x:hidden}
+    body{min-height:100vh}
+    ::-webkit-scrollbar{width:0;height:0}
+
+    #app::before{content:'';position:fixed;inset:0;z-index:-1;
+      background:radial-gradient(ellipse 60% 50% at 20% 10%,rgba(201,169,110,0.08) 0%,transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 80%,rgba(139,74,94,0.07) 0%,transparent 70%),
+      radial-gradient(ellipse 80% 40% at 50% 50%,rgba(163,114,78,0.04) 0%,transparent 60%)}
+
+    .app-header{position:sticky;top:0;z-index:100;padding:16px 20px 14px;
+      background:rgba(15,13,19,0.75);backdrop-filter:blur(30px) saturate(1.4);
+      border-bottom:1px solid var(--border-glass)}
+    .header-brand{font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:3px;
+      background:linear-gradient(135deg,var(--accent-gold-light),var(--accent-gold),var(--accent-warm));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .header-sub{font-size:11px;color:var(--text-dim);letter-spacing:6px;margin-top:2px}
+
+    .category-bar{display:flex;gap:8px;padding:14px 20px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .category-bar::-webkit-scrollbar{display:none}
+    .cat-chip{flex-shrink:0;padding:7px 18px;border-radius:20px;font-size:13px;letter-spacing:1px;
+      border:1px solid var(--border-glass);background:var(--bg-glass);color:var(--text-secondary);cursor:pointer;transition:all .3s}
+    .cat-chip.active{background:linear-gradient(135deg,var(--accent-gold),var(--accent-warm));
+      color:var(--bg-primary);border-color:transparent;font-weight:600;box-shadow:0 4px 20px rgba(201,169,110,0.25)}
+
+    .product-list{padding:0 16px 120px}
+    .product-card{margin-bottom:14px;padding:16px;background:var(--bg-glass);backdrop-filter:blur(16px) saturate(1.2);
+      border:1px solid var(--border-glass);border-radius:var(--radius-md);animation:fadeUp .45s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .product-card:nth-child(n){animation-delay:calc((n - 1) * 0.05s)}
+
+    .card-top{display:flex;gap:14px;margin-bottom:12px}
+    .product-img-wrap{flex-shrink:0;width:86px;height:163px;border-radius:var(--radius-sm);overflow:hidden;
+      background:linear-gradient(145deg,rgba(201,169,110,0.12),rgba(139,74,94,0.08));
+      display:flex;align-items:center;justify-content:center}
+    .product-img-wrap img{width:100%;height:100%;object-fit:cover}
+    .product-img-placeholder{font-size:36px;opacity:.4}
+    .product-info{flex:1;display:flex;flex-direction:column;min-width:0}
+    .product-name{font-family:var(--font-display);font-size:17px;font-weight:600;letter-spacing:.5px;margin-bottom:5px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .product-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+    .product-tag{padding:2px 8px;border-radius:6px;font-size:10px;letter-spacing:.5px;
+      background:rgba(201,169,110,0.1);color:var(--accent-gold);border:1px solid rgba(201,169,110,0.15)}
+    .product-desc{font-size:12px;color:var(--text-dim);line-height:1.5;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+    .card-options{display:flex;flex-direction:column;gap:10px}
+    .opt-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .opt-label{font-size:12px;color:var(--text-secondary);letter-spacing:.5px;width:42px;flex-shrink:0}
+    .opt-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+    .opt-chip{padding:5px 12px;border-radius:8px;font-size:12px;
+      border:1px solid var(--border-glass-light);background:var(--bg-glass);color:var(--text-secondary);
+      cursor:pointer;transition:all .25s;white-space:nowrap}
+    .opt-chip.active{background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(163,114,78,0.2));
+      border-color:var(--accent-gold);color:var(--accent-gold-light);font-weight:600}
+
+    .card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;
+      border-top:1px solid var(--border-glass)}
+    .product-price{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--accent-gold-light)}
+    .product-price .yen{font-size:13px;margin-right:1px}
+
+    .qty-ctrl{display:flex;align-items:center;gap:4px}
+    .qty-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border-glass);
+      background:var(--bg-glass-heavy);color:var(--text-primary);font-size:16px;
+      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+    .qty-btn:active{transform:scale(.88)}
+    .qty-btn.add{background:linear-gradient(135deg,var(--accent-gold),var(--accent-warm));border:none;color:#fff;
+      box-shadow:0 2px 12px rgba(201,169,110,0.3)}
+    .qty-btn.minus{opacity:.6}
+    .qty-num{min-width:24px;text-align:center;font-size:15px;font-weight:600;font-family:var(--font-display)}
+
+    .cart-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;
+      padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+      background:rgba(15,13,19,0.85);backdrop-filter:blur(30px) saturate(1.5);
+      border-top:1px solid var(--border-glass);display:flex;align-items:center;gap:14px}
+    .cart-icon-wrap{position:relative;width:48px;height:48px;border-radius:50%;
+      background:linear-gradient(135deg,var(--bg-glass-heavy),var(--bg-glass));border:1px solid var(--border-glass);
+      display:flex;align-items:center;justify-content:center;font-size:22px}
+    .cart-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;
+      background:var(--danger);color:#fff;font-size:10px;font-weight:700;
+      display:flex;align-items:center;justify-content:center;padding:0 5px}
+    .cart-total-area{flex:1}
+    .cart-total-label{font-size:11px;color:var(--text-dim);letter-spacing:1px}
+    .cart-total-price{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--accent-gold-light)}
+    .cart-total-price .yen{font-size:14px}
+    .cart-checkout-btn{padding:12px 28px;border-radius:24px;border:none;
+      background:linear-gradient(135deg,var(--accent-gold),var(--accent-warm));color:#fff;
+      font-family:var(--font-body);font-size:14px;font-weight:600;letter-spacing:2px;cursor:pointer;
+      box-shadow:0 4px 24px rgba(201,169,110,0.3);transition:all .25s}
+    .cart-checkout-btn:active{transform:scale(.95)}
+    .cart-checkout-btn:disabled{opacity:.3;box-shadow:none;cursor:not-allowed}
+
+    /* Checkout sheet */
+    .checkout-popup{position:fixed;inset:0;z-index:1000;visibility:hidden;opacity:0;transition:all .35s}
+    .checkout-popup.show{visibility:visible;opacity:1}
+    .checkout-popup .overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(20px)}
+    .checkout-sheet{position:absolute;bottom:0;left:0;right:0;z-index:1;max-height:92vh;
+      background:rgba(22,19,28,0.97);backdrop-filter:blur(40px) saturate(1.5);
+      border:1px solid var(--border-glass);border-bottom:none;
+      border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;
+      transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+    .checkout-popup.show .checkout-sheet{transform:translateY(0)}
+    .sheet-inner{padding:20px 20px calc(24px + env(safe-area-inset-bottom))}
+    .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--text-dim);margin:0 auto 18px}
+    .sheet-title{font-family:var(--font-display);font-size:22px;font-weight:600;text-align:center;
+      letter-spacing:2px;margin-bottom:18px;
+      background:linear-gradient(135deg,var(--accent-gold-light),var(--accent-gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+    .order-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;
+      border-bottom:1px solid var(--border-glass)}
+    .oi-left{flex:1;min-width:0}
+    .oi-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .oi-spec{font-size:11px;color:var(--text-dim);margin-top:2px}
+    .oi-qty{font-size:13px;color:var(--text-secondary);margin:0 12px;white-space:nowrap}
+    .oi-sub{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--accent-gold-light);white-space:nowrap}
+    .order-total-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0 18px}
+    .order-total-row span:first-child{font-size:13px;color:var(--text-secondary)}
+    .order-total-val{font-family:var(--font-display);font-size:26px;font-weight:600;color:var(--accent-gold-light)}
+
+    .form-section{margin-top:6px}
+    .form-divider{height:1px;background:var(--border-glass);margin:16px 0}
+    .form-section-title{font-family:var(--font-display);font-size:18px;font-weight:600;
+      letter-spacing:1px;margin-bottom:14px;color:var(--accent-gold-light)}
+
+    .form-row{margin-bottom:14px}
+    .form-label{font-size:12px;color:var(--text-secondary);letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+    .form-label .req{color:var(--danger);font-size:14px}
+    .form-input{width:100%;padding:11px 14px;border-radius:var(--radius-sm);
+      border:1px solid var(--border-glass-light);background:var(--bg-glass);color:var(--text-primary);
+      font-family:var(--font-body);font-size:14px;outline:none;transition:border-color .25s}
+    .form-input:focus{border-color:var(--accent-gold)}
+    .form-input::placeholder{color:var(--text-dim)}
+    .form-input:disabled{opacity:.5;cursor:not-allowed}
+    select.form-input{-webkit-appearance:none;appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a96e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+    select.form-input option{background:#1a1620;color:var(--text-primary)}
+    textarea.form-input{resize:none;min-height:60px;line-height:1.6}
+
+    .form-inline{display:flex;gap:10px}
+    .form-inline .form-row{flex:1}
+
+    .time-chips{display:flex;gap:8px;flex-wrap:wrap}
+    .time-chip{padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;
+      border:1px solid var(--border-glass-light);background:var(--bg-glass);color:var(--text-secondary);
+      cursor:pointer;transition:all .25s}
+    .time-chip.active{background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(163,114,78,0.2));
+      border-color:var(--accent-gold);color:var(--accent-gold-light);font-weight:600}
+
+    .utensil-row{display:flex;align-items:center;justify-content:space-between;
+      padding:10px 14px;border-radius:var(--radius-sm);background:var(--bg-glass);border:1px solid var(--border-glass)}
+    .utensil-name{font-size:14px}
+
+    .submit-btn{display:block;width:100%;padding:16px;border-radius:var(--radius-md);border:none;
+      background:linear-gradient(135deg,var(--accent-gold),var(--accent-warm));color:#fff;
+      font-family:var(--font-body);font-size:16px;font-weight:600;letter-spacing:3px;cursor:pointer;
+      box-shadow:0 6px 30px rgba(201,169,110,0.3);transition:all .25s;margin-top:20px}
+    .submit-btn:active{transform:scale(.97)}
+
+    .success-popup{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;
+      visibility:hidden;opacity:0;transition:all .35s;padding:30px}
+    .success-popup.show{visibility:visible;opacity:1}
+    .success-popup .overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(20px)}
+    .success-card{position:relative;z-index:1;width:100%;max-width:320px;
+      background:rgba(26,22,32,0.95);backdrop-filter:blur(40px);border:1px solid var(--border-glass);
+      border-radius:var(--radius-lg);padding:36px 28px;text-align:center;
+      transform:scale(.85);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+    .success-popup.show .success-card{transform:scale(1)}
+    .success-icon{font-size:48px;margin-bottom:16px}
+    .success-title{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:1px;
+      margin-bottom:10px;color:var(--accent-gold-light)}
+    .success-msg{font-size:13px;line-height:1.8;color:var(--text-secondary);margin-bottom:24px}
+    .success-wechat-btn{display:inline-block;padding:12px 32px;border-radius:24px;border:none;
+      background:#07c160;color:#fff;font-family:var(--font-body);font-size:14px;font-weight:600;
+      letter-spacing:2px;cursor:pointer;margin-bottom:12px;transition:all .2s}
+    .success-wechat-btn:active{transform:scale(.95)}
+    .success-close{display:block;width:100%;padding:10px;background:none;border:none;
+      color:var(--text-dim);font-family:var(--font-body);font-size:13px;cursor:pointer}
+
+    .empty-hint{text-align:center;padding:60px 20px;color:var(--text-dim);font-size:13px;letter-spacing:1px}
+    .empty-hint .icon{font-size:48px;margin-bottom:12px;opacity:.3}
+
+    .form-error{border-color:var(--danger) !important}
+    .error-msg{font-size:11px;color:var(--danger);margin-top:4px}
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <header class="app-header">
+    <div class="header-brand">泗水首家线上酒馆 · 进口啤酒折扣</div>
+    <div class="header-sub">渴 了 吗</div>
+  </header>
+
+  <div class="category-bar">
+    <div v-for="cat in categories" :key="cat" class="cat-chip" :class="{active:currentCat===cat}" @click="currentCat=cat">{{cat}}</div>
+  </div>
+
+  <div class="product-list">
+    <!-- 鸡尾酒 -->
+    <template v-if="currentCat==='全部'||currentCat==='鸡尾酒'">
+      <div v-for="(item,idx) in cocktailItems" :key="'c'+idx" class="product-card" :style="{'animation-delay':idx*0.06+'s'}">
+        <div class="card-top">
+          <div class="product-img-wrap">
+            <img v-if="item.img" :src="item.img" :alt="item.name"/>
+            <div v-else class="product-img-placeholder">🍸</div>
+          </div>
+          <div class="product-info">
+            <div class="product-name">{{item.name}}</div>
+            <div class="product-tags"><span class="product-tag" v-for="t in item.tags" :key="t">{{t}}</span></div>
+            <div class="product-desc">{{item.desc}}</div>
+          </div>
+        </div>
+        <div class="card-options">
+          <div class="opt-row">
+            <span class="opt-label">度数</span>
+            <div class="opt-chips">
+              <span v-for="d in cocktailDegrees" :key="d" class="opt-chip"
+                :class="{active:getCOpt(item.id,'degree')===d}" @click="setCOpt(item.id,'degree',d)">{{d}}°</span>
+            </div>
+          </div>
+          <div class="opt-row">
+            <span class="opt-label">容量</span>
+            <div class="opt-chips">
+              <span class="opt-chip" :class="{active:getCOpt(item.id,'size')==='1L'}" @click="setCOpt(item.id,'size','1L')">1L · ¥38</span>
+              <span class="opt-chip" :class="{active:getCOpt(item.id,'size')==='3L'}" @click="setCOpt(item.id,'size','3L')">3L · ¥88</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-bottom">
+          <div class="product-price"><span class="yen">¥</span>{{getCPrice(item.id)}}</div>
+          <div class="qty-ctrl">
+            <template v-if="getCQty(item.id)>0">
+              <button class="qty-btn minus" @click="changeCQty(item.id,-1)">−</button>
+              <span class="qty-num">{{getCQty(item.id)}}</span>
+            </template>
+            <button class="qty-btn add" @click="changeCQty(item.id,1)">+</button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 啤酒 -->
+    <template v-if="currentCat==='全部'||currentCat==='啤酒'">
+      <div v-for="(item,idx) in beerItems" :key="'b'+idx" class="product-card" :style="{'animation-delay':idx*0.06+'s'}">
+        <div class="card-top">
+          <div class="product-img-wrap">
+            <img v-if="item.img" :src="item.img" :alt="item.name"/>
+            <div v-else class="product-img-placeholder">🍺</div>
+          </div>
+          <div class="product-info">
+            <div class="product-name">{{item.name}}</div>
+            <div class="product-tags"><span class="product-tag" v-for="t in item.tags" :key="t">{{t}}</span></div>
+            <div class="product-desc">{{item.desc}}</div>
+          </div>
+        </div>
+        <div class="card-options">
+          <div class="opt-row">
+            <span class="opt-label">温度</span>
+            <div class="opt-chips">
+              <span class="opt-chip" :class="{active:getBOpt(item.id)==='冷藏'}" @click="setBOpt(item.id,'冷藏')">🧊 冷藏</span>
+              <span class="opt-chip" :class="{active:getBOpt(item.id)==='常温'}" @click="setBOpt(item.id,'常温')">🌡️ 常温</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-bottom">
+          <div class="product-price"><span class="yen">¥</span>{{item.price}}</div>
+          <div class="qty-ctrl">
+            <template v-if="getBQty(item.id)>0">
+              <button class="qty-btn minus" @click="changeBQty(item.id,-1)">−</button>
+              <span class="qty-num">{{getBQty(item.id)}}</span>
+            </template>
+            <button class="qty-btn add" @click="changeBQty(item.id,1)">+</button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <div v-if="filteredEmpty" class="empty-hint">
+      <div class="icon">🍾</div><div>该分类暂无酒品</div>
+    </div>
+  </div>
+
+  <!-- Bottom Cart Bar -->
+  <div class="cart-bar">
+    <div class="cart-icon-wrap">🛒<span class="cart-badge" v-if="totalCount>0">{{totalCount}}</span></div>
+    <div class="cart-total-area">
+      <div class="cart-total-label">合计</div>
+      <div class="cart-total-price"><span class="yen">¥</span>{{totalPrice.toFixed(2)}}</div>
+    </div>
+    <button class="cart-checkout-btn" :disabled="totalCount===0" @click="openCheckout">去结算</button>
+  </div>
+
+  <!-- Checkout Popup -->
+  <div class="checkout-popup" :class="{show:checkoutVisible}">
+    <div class="overlay" @click="checkoutVisible=false"></div>
+    <div class="checkout-sheet">
+      <div class="sheet-inner">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">确认订单</div>
+
+        <div v-for="ci in allCartItems" :key="ci.key" class="order-item">
+          <div class="oi-left">
+            <div class="oi-name">{{ci.name}}</div>
+            <div class="oi-spec">{{ci.spec}}</div>
+          </div>
+          <div class="oi-qty">× {{ci.qty}}</div>
+          <div class="oi-sub">¥{{ci.subtotal.toFixed(2)}}</div>
+        </div>
+        <div class="order-total-row">
+          <span>共 {{totalCount}} 件</span>
+          <span class="order-total-val">¥{{totalPrice.toFixed(2)}}</span>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- 送达时间 -->
+        <div class="form-section">
+          <div class="form-section-title">送达时间</div>
+          <div class="form-row">
+            <div class="time-chips">
+              <span v-for="t in deliveryTimes" :key="t" class="time-chip" :class="{active:form.deliveryTime===t}" @click="form.deliveryTime=t">{{t}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- 配送地址 -->
+        <div class="form-section">
+          <div class="form-section-title">配送信息</div>
+          <div class="form-inline">
+            <div class="form-row"><div class="form-label">市</div><input class="form-input" value="济宁市" disabled/></div>
+            <div class="form-row"><div class="form-label">县</div><input class="form-input" value="泗水县" disabled/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span> 乡镇/街道</div>
+            <select class="form-input" :class="{'form-error':errors.district}" v-model="form.district">
+              <option value="">请选择</option>
+              <option v-for="d in districts" :key="d" :value="d">{{d}}</option>
+            </select>
+            <div v-if="errors.district" class="error-msg">请选择乡镇/街道</div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="req">*</span> 详细地址</div>
+            <input class="form-input" :class="{'form-error':errors.address}" v-model="form.address" placeholder="例：XX小区X号楼X单元"/>
+            <div v-if="errors.address" class="error-msg">请填写详细地址</div>
+          </div>
+          <div class="form-inline">
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span> 联系电话</div>
+              <input class="form-input" :class="{'form-error':errors.phone}" v-model="form.phone" type="tel" placeholder="手机号"/>
+              <div v-if="errors.phone" class="error-msg">请填写电话</div>
+            </div>
+            <div class="form-row">
+              <div class="form-label"><span class="req">*</span> 贵姓</div>
+              <input class="form-input" :class="{'form-error':errors.name}" v-model="form.name" placeholder="您的姓氏"/>
+              <div v-if="errors.name" class="error-msg">请填写姓氏</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- 餐具 -->
+        <div class="form-section">
+          <div class="form-section-title">餐具需求</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div v-for="u in utensils" :key="u.key" class="utensil-row">
+              <div class="utensil-name">{{u.icon}} {{u.label}}</div>
+              <div class="qty-ctrl">
+                <template v-if="form.utensils[u.key]>0">
+                  <button class="qty-btn minus" @click="changeUtensil(u.key,-1)">−</button>
+                  <span class="qty-num">{{form.utensils[u.key]}}</span>
+                </template>
+                <button class="qty-btn add" @click="changeUtensil(u.key,1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- 备注 -->
+        <div class="form-section">
+          <div class="form-section-title">特殊备注</div>
+          <div class="form-row">
+            <textarea class="form-input" v-model="form.remark" placeholder="如有特殊需求请在此备注…"></textarea>
+          </div>
+        </div>
+
+        <button class="submit-btn" @click="placeOrder">点 击 下 单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div class="success-popup" :class="{show:successVisible}">
+    <div class="overlay" @click="successVisible=false"></div>
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <div class="success-title">订单已复制！</div>
+      <div class="success-msg">订单明细已复制到剪贴板<br>请前往微信对话框<br><strong style="color:var(--accent-gold-light)">粘贴发送给我</strong></div>
+      <button class="success-wechat-btn" @click="openWechat">打开微信</button>
+      <button class="success-close" @click="successVisible=false">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const {createApp,ref,reactive,computed,watch,onMounted} = Vue;
+createApp({
+  setup(){
+    /* ================================================================
+     *  商品数据 —— 修改此处自定义菜单
+     *  img 填入图片URL展示，留空显示占位emoji
+     * ================================================================ */
+    const cocktailItems = ref([
+      { id:'c1', name:'威士忌可乐', tags:['经典威士忌','可乐添甜爽'], desc:'威士忌的醇厚遇上可乐的甜爽，青柠提香，是永不过时的经典微醺。', img:'./img/威士忌可乐.png' },
+      { id:'c2',  name:'蓝橙气泡',       tags:['蓝橙映清冽','气泡漫清甜'],   desc:'蓝橙力娇酒的梦幻色泽，搭配绵密气泡，入口清甜，颜值与口感双在线。',img:'./img/蓝橙气泡.png' },
+      { id:'c3',  name:'荔枝满满',       tags:['荔枝香满溢','清甜入喉间'],   desc:'新鲜荔枝果肉榨取的清甜，融入清冽基酒，每一口都是满溢的果香。', img:'./img/荔枝满满.png'  },
+      { id:'c4',  name:'芭乐桃子',       tags:['芭乐配鲜桃','果香绕舌尖'],   desc:'红心芭乐的软嫩与水蜜桃的香甜碰撞，果香浓郁，酸甜平衡超治愈。',img:'./img/芭乐桃子.png'  },
+      { id:'c5',  name:'醉意葡萄',       tags:['葡萄酿微醺','醉意漫心头'],   desc:'鲜榨葡萄汁的清甜融合基酒，入口绵柔，微醺感缓缓漫上心头。', img:'./img/醉意葡萄.png' },
+      { id:'c6',  name:'伏特加青果',     tags:['伏特加烈爽','青果解辛醇'],   desc:'伏特加的凛冽烈爽，被青果的清新酸甜中和，口感干净利落，清爽解腻。',img:'./img/伏特加青果.png'  },
+      { id:'c7',  name:'威士忌红茶',     tags:['威士忌醇厚','红茶衬甘香'],   desc:'威士忌的醇厚与红茶的甘香交融，茶韵悠长，适合慢品的温柔微醺。', img:'./img/威士忌红茶.png' },
+      { id:'c8',  name:'青梅威士忌',     tags:['青梅酸爽口','威士忌绵长'],   desc:'青梅的酸爽开胃，搭配威士忌的绵长醇厚，酸甜交织，越品越有味道。', img:'./img/青梅威士忌.png'  },
+      { id:'c9',  name:'紫罗兰菲士',     tags:['紫罗兰芬芳','菲士气泡扬'],   desc:'紫罗兰的优雅花香，搭配金菲士的绵密气泡，清新雅致，一口沦陷。', img:'./img/紫罗兰菲士.png'  },
+      { id:'c10', name:'百香果安眠药',   tags:['百香果浓甜','助你入酣眠'],   desc:'百香果的浓郁酸甜，融合柔和基酒，口感绵密，助你卸下疲惫，安然入梦。', img:'./img/百香果安眠药.png'  },
+      { id:'c11', name:'玫瑰冰酒',       tags:['玫瑰香萦绕','冰酒沁心凉'],   desc:'大马士革玫瑰的馥郁香气，搭配冰酒的清甜冰爽，浪漫感拉满。', img:'./img/玫瑰冰酒.png'  },
+      { id:'c12', name:'缤果威士忌',     tags:['百果融甘醇','威士忌留香'],   desc:'多种热带鲜果的甜润，融入威士忌的醇厚，果香与酒香层层递进。',img:'./img/缤果威士忌.png'  },
+      { id:'c13', name:'日出橙意',       tags:['橙光映日出','暖意满杯间'],   desc:'橙汁的鲜甜勾勒出日出渐变，龙舌兰的烈爽打底，是氛围感拉满的特调。', img:'./img/日出橙意.png'  },
+      { id:'c14', name:'西柚海风',       tags:['西柚酸鲜爽','海风拂心头'],   desc:'西柚的鲜酸清爽，搭配咸鲜风味，仿佛置身海边，一口吹散夏日燥热。', img:'./img/西柚海风.png' },
+      { id:'c15', name:'草莓真露',       tags:['草莓甜多汁','真露润喉间'],   desc:'新鲜草莓的饱满甜汁，融合真露的清冽，入口清甜，少女感十足。', img:'./img/草莓真露.png'  },
+      { id:'c16', name:'移花接骨木',     tags:['接骨木清润','花香漫杯沿'],   desc:'接骨木花的清雅香气，搭配清甜果味，口感柔和，是小众高级的风味。',img:'./img/移花接骨木.png'  },
+      { id:'c17', name:'椰林大道',       tags:['椰香漫大道','清甜入梦乡'],   desc:'浓郁椰奶与朗姆酒的经典融合，奶香醇厚，一口带你穿越热带椰林。', img:'./img/椰林大道.png'  },
+      { id:'c18', name:'石榴金菲士',     tags:['石榴红似火','金菲士气泡'],   desc:'石榴的鲜红甜润，搭配金菲士的绵密气泡，颜值与口感双重惊艳。',img:'./img/石榴金菲士.png'  },
+      { id:'c19', name:'茉莉青提',       tags:['茉莉香清雅','青提甜多汁'],   desc:'茉莉的清雅茶香，搭配青提的脆甜多汁，入口清爽，茶香与果香交织。', img:'./img/茉莉青提.png'  },
+      { id:'c20', name:'凤梨冰酒',       tags:['凤梨鲜酸甜','冰酒透清凉'],   desc:'凤梨的鲜爽酸甜，融合冰酒的冰润清甜，果香浓郁，夏日解暑神器。',img:'./img/凤梨冰酒.png'  },
+    ]);
+    const beerItems = ref([
+      { id:'b1', name:'青岛经典 1903', tags:['中国','4.7%vol'],   desc:'百年经典麦香，酒花清爽苦韵。',             price:8,  img:'' },
+      { id:'b2', name:'福佳白啤酒',    tags:['比利时','4.9%vol'], desc:'橙皮与芫荽籽赋予清新独特风味。',           price:15, img:'' },
+      { id:'b3', name:'科罗娜特级',    tags:['墨西哥','4.5%vol'], desc:'搭配青柠饮用，清爽宜人的拉格风格。',       price:12, img:'' },
+      { id:'b4', name:'1664白啤',      tags:['法国','5%vol'],     desc:'法式优雅小麦啤酒，柑橘与芫荽的芬芳。',   price:14, img:'' },
+    ]);
+
+    const categories = ['全部','鸡尾酒','啤酒'];
+    const currentCat = ref('全部');
+    const cocktailDegrees = [8,15,20,25,30];
+
+    const filteredEmpty = computed(()=>{
+      if(currentCat.value==='鸡尾酒') return cocktailItems.value.length===0;
+      if(currentCat.value==='啤酒') return beerItems.value.length===0;
+      return cocktailItems.value.length===0 && beerItems.value.length===0;
+    });
+
+    /* ===== Cart state ===== */
+    const CART_KEY = 'liquor_cart_v3';
+    const cCart = ref({}); // cocktail: { [id]: {qty,degree,size} }
+    const bCart = ref({}); // beer:     { [id]: {qty,temp} }
+
+    onMounted(()=>{
+      try{const s=localStorage.getItem(CART_KEY);if(s){const d=JSON.parse(s);cCart.value=d.c||{};bCart.value=d.b||{};}}catch(e){}
+    });
+    const saveCart=()=>{try{localStorage.setItem(CART_KEY,JSON.stringify({c:cCart.value,b:bCart.value}))}catch(e){}};
+    watch([cCart,bCart],saveCart,{deep:true});
+
+    // Cocktail helpers
+    const getCOpt=(id,k)=>{const c=cCart.value[id];if(!c)return k==='degree'?8:'1L';return c[k]||(k==='degree'?8:'1L')};
+    const setCOpt=(id,k,v)=>{const cur=cCart.value[id]||{qty:0,degree:8,size:'1L'};cCart.value={...cCart.value,[id]:{...cur,[k]:v}}};
+    const getCQty=(id)=>(cCart.value[id]?.qty)||0;
+    const getCPrice=(id)=>getCOpt(id,'size')==='3L'?88:38;
+    const changeCQty=(id,d)=>{
+      const cur=cCart.value[id]||{qty:0,degree:8,size:'1L'};const nq=(cur.qty||0)+d;
+      if(nq<=0){const c={...cCart.value};delete c[id];cCart.value=c;}
+      else{cCart.value={...cCart.value,[id]:{...cur,qty:nq}};}
+    };
+
+    // Beer helpers
+    const getBOpt=(id)=>(bCart.value[id]?.temp)||'冷藏';
+    const setBOpt=(id,v)=>{const cur=bCart.value[id]||{qty:0,temp:'冷藏'};bCart.value={...bCart.value,[id]:{...cur,temp:v}}};
+    const getBQty=(id)=>(bCart.value[id]?.qty)||0;
+    const changeBQty=(id,d)=>{
+      const cur=bCart.value[id]||{qty:0,temp:'冷藏'};const nq=(cur.qty||0)+d;
+      if(nq<=0){const c={...bCart.value};delete c[id];bCart.value=c;}
+      else{bCart.value={...bCart.value,[id]:{...cur,qty:nq}};}
+    };
+
+    /* ===== Totals ===== */
+    const totalCount=computed(()=>{
+      let n=0;
+      Object.values(cCart.value).forEach(v=>{if(v.qty)n+=v.qty});
+      Object.values(bCart.value).forEach(v=>{if(v.qty)n+=v.qty});
+      return n;
+    });
+    const totalPrice=computed(()=>{
+      let s=0;
+      for(const[id,v]of Object.entries(cCart.value)){if(v.qty) s+=(v.size==='3L'?88:38)*v.qty}
+      for(const[id,v]of Object.entries(bCart.value)){if(!v.qty)continue;const item=beerItems.value.find(x=>x.id===id);if(item)s+=item.price*v.qty}
+      return s;
+    });
+    const allCartItems=computed(()=>{
+      const list=[];
+      for(const[id,v]of Object.entries(cCart.value)){
+        if(!v.qty)continue;const item=cocktailItems.value.find(x=>x.id===id);if(!item)continue;
+        const price=v.size==='3L'?88:38;
+        list.push({key:'c-'+id,name:item.name,spec:`${v.degree||8}° / ${v.size||'1L'}`,qty:v.qty,subtotal:price*v.qty});
+      }
+      for(const[id,v]of Object.entries(bCart.value)){
+        if(!v.qty)continue;const item=beerItems.value.find(x=>x.id===id);if(!item)continue;
+        list.push({key:'b-'+id,name:item.name,spec:v.temp||'冷藏',qty:v.qty,subtotal:item.price*v.qty});
+      }
+      return list;
+    });
+
+    /* ===== Checkout form ===== */
+    const checkoutVisible=ref(false);
+    const successVisible=ref(false);
+    const deliveryTimes=['尽快送达','30分钟后','1小时后','2小时后','指定时间'];
+    const districts=['泗河街道','济河街道','中册镇','金庄镇','杨柳镇','高峪镇','柘沟镇','泗张镇','苗馆镇','圣水峪镇','星村镇','华村镇','泉林镇'];
+    const utensils=[
+      {key:'cup',label:'杯子',icon:'🥤'},
+      {key:'fire',label:'火机',icon:'🔥'},
+      {key:'opener',label:'开瓶器',icon:'🔧'},
+    ];
+
+    const form=reactive({
+      deliveryTime:'尽快送达',district:'',address:'',phone:'',name:'',
+      utensils:{cup:0,straw:0,ice:0,opener:0,napkin:0},remark:''
+    });
+    const errors=reactive({district:false,address:false,phone:false,name:false});
+
+    const changeUtensil=(k,d)=>{const nv=(form.utensils[k]||0)+d;form.utensils[k]=nv<0?0:nv};
+    const openCheckout=()=>{if(totalCount.value===0)return;Object.keys(errors).forEach(k=>errors[k]=false);checkoutVisible.value=true};
+
+    const placeOrder=async()=>{
+      let valid=true;
+      if(!form.district){errors.district=true;valid=false}else errors.district=false;
+      if(!form.address.trim()){errors.address=true;valid=false}else errors.address=false;
+      if(!form.phone.trim()){errors.phone=true;valid=false}else errors.phone=false;
+      if(!form.name.trim()){errors.name=true;valid=false}else errors.name=false;
+      if(!valid)return;
+
+      const now=new Date();
+      const ts=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      let t=`🍷 酒水订单\n━━━━━━━━━━━━━━\n`;
+      allCartItems.value.forEach(ci=>{t+=`${ci.name}（${ci.spec}）× ${ci.qty}　¥${ci.subtotal.toFixed(2)}\n`});
+      t+=`━━━━━━━━━━━━━━\n合计：¥${totalPrice.value.toFixed(2)}\n\n`;
+      t+=`📍 配送地址：济宁市 泗水县 ${form.district} ${form.address}\n`;
+      t+=`📞 联系电话：${form.phone}\n`;
+      t+=`👤 贵姓：${form.name}\n`;
+      t+=`⏰ 送达时间：${form.deliveryTime}\n`;
+      const uList=utensils.filter(u=>form.utensils[u.key]>0).map(u=>`${u.label}×${form.utensils[u.key]}`);
+      if(uList.length) t+=`🍽️ 餐具：${uList.join('、')}\n`;
+      if(form.remark.trim()) t+=`📝 备注：${form.remark.trim()}\n`;
+      t+=`\n下单时间：${ts}`;
+
+      try{await navigator.clipboard.writeText(t)}catch{
+        const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-9999px;top:-9999px;opacity:0';
+        document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+      }
+
+      cCart.value={};bCart.value={};
+      form.utensils={cup:0,straw:0,ice:0,opener:0,napkin:0};form.remark='';
+      checkoutVisible.value=false;successVisible.value=true;
+    };
+
+    const openWechat=()=>{window.location.href='weixin://'};
+
+    return {
+      categories,currentCat,cocktailItems,beerItems,cocktailDegrees,filteredEmpty,
+      getCOpt,setCOpt,getCQty,getCPrice,changeCQty,
+      getBOpt,setBOpt,getBQty,changeBQty,
+      totalCount,totalPrice,allCartItems,
+      checkoutVisible,successVisible,
+      deliveryTimes,districts,utensils,form,errors,
+      changeUtensil,openCheckout,placeOrder,openWechat
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
